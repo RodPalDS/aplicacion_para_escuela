@@ -53,9 +53,9 @@ def buscar_escuela(actualiza):
   con = sq3.connect('mi_db.db')  # me conecto a la base datos
   cur = con.cursor()    # creo el cursor
   if actualiza == True:   #cuando prendo la aplicacion le voy a pasar que sea falso, entonces trae toda la info de la base de datos
-    pass                  # la info lo pide del cursor y lo guarda en 'resultado'
-  else:
-    cur.execute('SELECT * FROM escuelas')
+    cur.execute('SELECT _id, localidad, provincia FROM escuelas WHERE nombre=?', (escuela.get(),))    # la info lo pide del cursor y lo guarda en 'resultado'
+  else:                   #OJOOOO: pusimos que vaya a False para que busque los datos de la base de datos. Pero para agregar nuevos datos es con el True
+    cur.execute('SELECT nombre FROM escuelas')
 
   resultado = cur.fetchall() # con fetchall entrega toda la informacion que quedó en el cursor
   #print(resultado)
@@ -64,12 +64,63 @@ def buscar_escuela(actualiza):
   retorno = []
   for e in resultado:  #creo un bucle que llame cada escuela
     if actualiza == True:
-      pass
-    esc = e[1]   #creo la variable tomando el lugar 1
+      provincia.set(e[2])
+      localidad.set(e[1])
+    esc = e[0]   #creo la variable tomando el lugar 0
     retorno.append(esc)   #creo la lista completa agregando las escuelas
   
   con.close()
   return retorno
+
+def leer():
+  query_leer = '''
+  SELECT alumnos.legajo, alumnos.nombre, alumnos.nota,  alumnos.email, alumnos.grado, escuelas.nombre, escuelas.localidad, escuelas.provincia
+  FROM alumnos INNER JOIN escuelas
+  ON alumnos.id_escuela = escuelas._id WHERE alumnos.legajo =
+  '''             # si nos fijamos vemos que el query esta incompleto, ya que se busca que alumnos.legajo sea completado despues.
+  cur.execute(query_leer + legajo.get())  #get lee la informacion y la guarda
+                                          # el execute va a leer mi query y va a completar el dato faltante con el get de legajo
+  resultado = cur.fetchall()  # ACORDARSE QUE FETCHALL trae la informacion que trae guardado el cursor
+  #print(resultado)
+  if resultado == []:
+    messagebox.showerror('ERROR', 'No existe ese número de legajo')
+  else:
+    for campo in resultado:
+      legajo.set(campo[0])
+      alumno.set(campo[1])
+      calificacion.set(campo[2])
+      email.set(campo[3])
+      escuela.set(campo[5])
+      localidad.set(campo[6])
+      provincia.set(campo[7])
+      legajo_input.config(state='disable')
+
+def actualizar():
+  pass
+
+def crear():
+  id_escuela = int(buscar_escuela(True)[0])  #buscar_escuela(True) me devuelva id, localidad y provincia. Pero solo me interesa el id, por lo que agrego [0] para que sólo guarde el id que está en la posición 0.
+                                        # La funcion me da como respuesta una lista o string, pero el id lo quiero com número, entonces debo definir la variable com número (integer)
+  datos = id_escuela, alumno.get(), calificacion.get(), email.get(), legajo.get()  # creo un vector donde salvo el id, los demas lo lee a partir de la query
+  cur.execute('INSERT INTO alumnos (id_escuela, nombre, nota, email, legajo) VALUES (?,?,?,?,?)', datos)   # este hace el cambio
+  con.commit()   #el commit guarda el cambio
+  messagebox.showinfo('Status', 'Alumno agregado')
+  limpiar()
+
+
+def limpiar():
+  legajo.set('')  # dejamos cada campo en blanco excepto escuela que tiene la opcion de elegir de una lista
+  alumno.set('')
+  calificacion.set('')
+  email.set('')
+  escuela.set('Seleccionar')
+  localidad.set('')
+  provincia.set('')
+  legajo_input.config(state='normal')
+
+def borrar():
+  pass
+
 
 # ---------------------------
 #      Intefaz gráfica
@@ -93,7 +144,7 @@ barramenu.add_cascade(label='BBDD', menu=bbddmenu) # crea la opcion de apertura 
 # ---------- OPcion limpiar en barra menu-----------
 
 limpiarmenu = Menu(barramenu, tearoff= 0)
-limpiarmenu.add_command(label='Limpiar campos')
+limpiarmenu.add_command(label='Limpiar campos', command=limpiar)
 barramenu.add_cascade(label='Limpiar', menu=limpiarmenu)
 
 # ---------- OPcion Ayuda en barra menu-----------
@@ -173,10 +224,10 @@ provincia_label.grid(row=6, column=1, padx=10, pady=10)
 framebotones = Frame(raiz)
 framebotones.pack()
 
-boton_crear = Button(framebotones, text='Crear')
+boton_crear = Button(framebotones, text='Crear', command=crear)
 boton_crear.grid(row=0, column = 0, padx = 5, pady = 10)
 
-boton_leer = Button(framebotones, text='Leer')
+boton_leer = Button(framebotones, text='Leer', command=leer)
 boton_leer.grid(row=0, column = 1, padx = 5, pady = 10)
 
 boton_actualizar = Button(framebotones, text='Actualizar')
@@ -197,4 +248,4 @@ copy_label.grid(row=0, column = 0, padx=10, pady=10)
 print(buscar_escuela(False))
 
 # ------- Abre la ventana -------------
-raiz.mainloop() #mantiene la ventana siempre abierta. Este código debe estar al final del código para que lea los códigos anteriores
+raiz.mainloop() #mantiene la ventana siempre abierta. Este código debe estar al final del código para que lea los códigos anterioresfix
