@@ -1,4 +1,4 @@
-APLICACIÓN PARA UNA ESCUELA
+APLICACIÓN PARA BBDD DE ESCUELAS
 
 Este trabajo es parte del ejercicio desarrollado en el curso de Bid Data de Codo a Codo, con el profesor Matias Ignacio Escobar.
 
