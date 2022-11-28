@@ -96,7 +96,12 @@ def leer():
       legajo_input.config(state='disable')
 
 def actualizar():
-  pass
+  id_escuela  = int(buscar_escuela(True)[0]) 
+  datos = id_escuela, alumno.get(), calificacion.get(), email.get()
+  cur.execute('UPDATE alumnos SET id_escuela = ?, nombre=?, nota=?, email=? WHERE legajo=' + legajo.get(), datos)
+  con.commit()
+  messagebox.showinfo('Status', 'Legajo actualizado')
+  limpiar()
 
 def crear():
   id_escuela = int(buscar_escuela(True)[0])  #buscar_escuela(True) me devuelva id, localidad y provincia. Pero solo me interesa el id, por lo que agrego [0] para que sólo guarde el id que está en la posición 0.
@@ -119,7 +124,12 @@ def limpiar():
   legajo_input.config(state='normal')
 
 def borrar():
-  pass
+  resp = messagebox.askquestion('Eliminar', '¿Desea eliminar al usuario?')
+  if resp == 'yes':
+    cur.execute('DELETE FROM alumnos WHERE legajo =' + legajo.get())
+    con.commit()
+    messagebox.showinfo('Status', 'El legajo fue eliminado de la base de datos.')
+    limpiar()
 
 
 # ---------------------------
@@ -230,10 +240,10 @@ boton_crear.grid(row=0, column = 0, padx = 5, pady = 10)
 boton_leer = Button(framebotones, text='Leer', command=leer)
 boton_leer.grid(row=0, column = 1, padx = 5, pady = 10)
 
-boton_actualizar = Button(framebotones, text='Actualizar')
+boton_actualizar = Button(framebotones, text='Actualizar', command=actualizar)
 boton_actualizar.grid(row=0, column = 2, padx = 5, pady = 10)
 
-boton_borrar = Button(framebotones, text='Borrar')
+boton_borrar = Button(framebotones, text='Borrar', command=borrar)
 boton_borrar.grid(row=0, column = 3, padx = 5, pady = 10)
 
 
